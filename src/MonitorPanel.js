@@ -1,41 +1,77 @@
 import { useState, useReducer, useEffect } from 'react';
 import { config } from './config';
+import Icons from './svgs';
 
 import './MonitorPanel.scss';
 import PersistentWebSocket from "./PersistentWebSocket";
     
 const ws = new PersistentWebSocket(config.socket_url, [], false);
 
-function StatusPane(props) {
+function Status(props) {
   return (
-    <div className={props.className}><svg viewBox="0 0 1168 476" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 1168 476" preserveAspectRatio="xMidYMid meet">
     <text x="584" y="238" fill="white" fontFamily="Barlow-SemiBold, Barlow" fontSize="180" fontWeight="600" textAnchor="middle">
         <tspan dy=".35em" id="statusLabel">{props.children}</tspan>
     </text>
-</svg></div>
+</svg>
   );
+}
+
+function MeetingAspect(props) {
+  let IconOn, IconOff;
+  switch(props.which) {
+    case "mic":
+      IconOn = <Icons.MicOn />;
+      IconOff = <Icons.MicOff />;
+      break;
+    case "video": 
+      IconOn = <Icons.VidOn />;
+      IconOff = <Icons.VidOff />;
+      break;
+    case "screen":
+    default:
+      IconOn = <Icons.ScreenOn />;
+      IconOff = <Icons.ScreenOff />;
+      break;
+  }
+
+  return <div className={["aspect",(props.on?"on":"off")].join(" ").trim()}>{props.on ? IconOn : IconOff}</div>
 }
 
 function RoomPanel(props) {
   const {name, status} = props.info;
 
+  let className = "busy";
   let displayStatus;
+  let aspects;
   let busy = false;
 
   if(typeof status === "string") {
-    displayStatus = <StatusPane className="status offline">{status}</StatusPane>
+    className = "offline";
+    displayStatus = status;
   }
   else if(!status.inMeeting) {
-    displayStatus = <StatusPane className="status free">FREE</StatusPane>
+    className = "free";
+    displayStatus = "FREE";
   }
   else {
+    className = "busy";
     busy = true;
-    displayStatus = <StatusPane className="status busy">MEETING</StatusPane>
+    displayStatus = "MEETING";
+    aspects = [
+      <MeetingAspect which="mic" on={status.inMeeting.mic_open} />,
+      <MeetingAspect which="video" on={status.inMeeting.video_on} />,
+      <MeetingAspect which="screen" on={status.inMeeting.sharing} />
+    ];
+
   }
 
-  return (<div onClick={props.onClick} className={[props.className,(busy ? " busy" : "")].join(" ").trim()}>
+  return (<div onClick={props.onClick} className={[props.className,(className==="busy" ? "busy" : "")].join(" ").trim()}>
     <h1>{name}</h1>
-    {displayStatus}
+    <div className={`status ${className}`}>
+      <Status>{displayStatus}</Status>
+    </div>
+    {aspects}
   </div>);
 }
 
@@ -100,25 +136,25 @@ function MonitorPanel() {
 
   if(connectionStatus==="initializing") return (
     <div className="MonitorPanel">
-      <StatusPane>Initializing...</StatusPane>
+      <Status>Initializing...</Status>
     </div>
   );
   else if(connectionStatus==="offline") return (
     <div className="MonitorPanel">
-      <StatusPane>Offline</StatusPane>
+      <Status>Offline</Status>
     </div>);
   else {
     //ONLINE
     let picker = "";
     if(showRoomPicker || activeRoom==="") {
       picker = (<div className="Picker">
-        {rooms.keys.map(id=><RoomPanel onClick={()=>{pickRoom(id);setShowRoomPicker(false);}} key={`chip-${id}`} info={rooms.info[id]} className="room"/>)}
+        {rooms.keys.map(id=><div className="slot"><RoomPanel onClick={()=>{pickRoom(id);setShowRoomPicker(false);}} key={`chip-${id}`} info={rooms.info[id]} className="room"/></div>)}
       </div>)
     }
 
     let monitor = "";
     if(activeRoom!=="" && activeRoom in rooms.info) {
-      monitor = (<RoomPanel info={rooms.info[activeRoom]} className="Monitor" />);
+      monitor = (<RoomPanel info={rooms.info[activeRoom]} className="room" />);
     }
     
     return (
