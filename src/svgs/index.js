@@ -4,6 +4,8 @@ import {ReactComponent as ScreenshareOff} from './screenshareOff.svg';
 import {ReactComponent as ScreenshareOn} from './screenshareOn.svg';
 import {ReactComponent as VidOff} from './vidOff.svg';
 import {ReactComponent as VidOn} from './vidOn.svg';
+import {ReactComponent as Cog} from './cog.svg';
+import {ReactComponent as Tiles} from './tiles.svg';
 
 const Icons = {
     MicOn: MicActive,
@@ -11,7 +13,9 @@ const Icons = {
     ScreenOn: ScreenshareOn,
     ScreenOff: ScreenshareOff,
     VidOn: VidOn,
-    VidOff: VidOff
+    VidOff: VidOff,
+    Cog: Cog,
+    Tiles: Tiles
 };
 
 export default Icons;

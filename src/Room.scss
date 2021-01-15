@@ -1,0 +1,94 @@
+
+.room {
+    
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    .picker & {
+        position: static;
+    }
+
+    background: #ccc;
+    &.free {
+        background: #93E0FF;
+    }
+
+    display: grid;
+    grid-template-rows: min-content 2fr;
+    grid-auto-rows: 1fr;
+
+    border-radius: 4px;
+    overflow: hidden;
+    
+    grid-template-areas: "controls" "status";
+    &.busy {
+      background: #C80037;
+    }
+    
+    .controls {
+        background:#fff;
+        grid-area: controls;
+        display: grid;
+        grid-template-columns: 1fr 1rem;
+        grid-template-rows: 1rem;
+        padding: .5rem;
+        line-height: 1rem;
+        border-bottom: 1px solid rgba(0,0,0,0.25);
+        
+        .button {
+            display: none;
+        }
+
+    }
+
+    &.active {
+        box-shadow: 0 0 0 0.125rem yellow;
+        .controls {
+            .button {
+                display: block;
+            }
+        }
+    }
+
+    &.open {
+        .controls {
+            grid-template-columns: 1.5rem 1fr 1rem;
+            .button {
+                display: block;
+                &.back {
+                    margin-right: .5rem;
+                }
+            }
+        }
+    }
+
+    .status {
+        display: grid;
+        place-items: center;
+        grid-area: status;
+        font-size: 3rem;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .aspects {
+        fill: #fff;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns:1fr;
+        padding: 1rem;
+        place-items: center;
+        svg {
+            max-width: 8rem;
+            max-height: 8rem;
+        }
+    }
+    
+}

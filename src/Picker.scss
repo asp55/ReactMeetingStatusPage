@@ -1,0 +1,9 @@
+.picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    background: black;
+    box-sizing: border-box;
+    min-height: 100vh;
+}
