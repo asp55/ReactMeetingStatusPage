@@ -1,4 +1,5 @@
-import React, { useState, useReducer, useEffect } from 'react';
+import React, { useState, useReducer, useEffect, useRef } from 'react';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { config } from './config';
 import Picker from './Picker.js'
 import Room from './Room.js'
@@ -91,6 +92,21 @@ function MonitorPanel() {
     }
   }, []);
 
+  const roomRef = useRef(null);
+  const nodeRef = useRef(null);
+  const startingPosition = (ref) => {
+    const rect = ref.current.getBoundingClientRect(), parentRect = ref.current.parentElement.getBoundingClientRect();
+
+    return {
+      bottom: parentRect.bottom - rect.bottom,
+      height: rect.height,
+      left: rect.left - parentRect.left,
+      right: parentRect.right - rect.right,
+      top: rect.top - parentRect.top,
+      width: rect.width
+    }
+  }
+
   if(connectionStatus==="initializing") return (
     <div className="MonitorPanel">
       Initializing...
@@ -100,21 +116,49 @@ function MonitorPanel() {
     <div className="MonitorPanel">
       Server Offline
     </div>);
-  else {    
+  else {
     return (
       <React.Fragment>
-        <Picker rooms={rooms} onOpenRoom={(key, e)=>{manageRooms({action:"open", key:key, startingPosition:e.target.getBoundingClientRect()})}}/>
-        {openRooms.keys.map((key)=>
-          <Room 
-            key={`chip-${key}`}
-            name={rooms.info[key].name}
-            status={rooms.info[key].status}
-            onEdit={()=>console.log(`editRoom(${key})`)}
-            style={{"--testVar": 13}}
-            open={true}
-            onBack={()=>manageRooms({action:"close", key:key})}
-          />
-        )}
+        
+        <Picker 
+          ref={roomRef}
+          rooms={rooms}
+          onOpenRoom={(key, e)=>{
+
+            manageRooms({
+              action:"open", 
+              key:key, 
+              startingPosition:startingPosition(roomRef)
+            })
+          }
+        }/>
+        <TransitionGroup>
+          {openRooms.keys.map((key)=>{
+            const startingBox = openRooms.startingPosition[key];
+            return (
+            <CSSTransition key={`transition-${key}`} timeout={200} classNames="room" nodeRef={nodeRef}>
+              <Room 
+                ref={nodeRef}
+                key={`chip-${key}`}
+                name={rooms.info[key].name}
+                status={rooms.info[key].status}
+                onEdit={()=>console.log(`editRoom(${key})`)}
+                style={{
+                  "--startTop": startingBox.top+'px',
+                  "--startRight": startingBox.right+'px',
+                  "--startBottom": startingBox.bottom+'px',
+                  "--startLeft": startingBox.left+'px',
+                  "--startHeight": startingBox.height+'px'
+                }}
+                open={true}
+                onBack={()=>manageRooms({action:"close", key:key})}
+                onDoubleClick={()=>manageRooms({action:"close", key:key})}
+              />
+            </CSSTransition>
+            )}
+          )}
+
+        </TransitionGroup>
       </React.Fragment>
       
     )

@@ -41,7 +41,7 @@ function updatePickerHeight() {
     
 }
 
-export default class Picker extends React.Component {
+class Picker extends React.Component {
     constructor(props) {
         super(props);
         this.hasBeenRendered = false;
@@ -76,7 +76,7 @@ export default class Picker extends React.Component {
     }
 
     render() {
-        const rooms = this.props.rooms;
+        const {rooms, forwardedRef} = this.props;
 
         return (
             <div className="picker" onClick={()=>{this.setState({selectedRoom: ""})}}>
@@ -84,6 +84,7 @@ export default class Picker extends React.Component {
                 const roomOnline = (typeof rooms.info[id].status === "object");
                 return (
                     <Room 
+                        ref={this.state.selectedRoom === id ? forwardedRef : null}
                         key={`chip-${id}`}
                         name={rooms.info[id].name}
                         status={rooms.info[id].status}
@@ -100,3 +101,5 @@ export default class Picker extends React.Component {
         )
     }
 }
+
+export default React.forwardRef(function picker(props, ref) {return <Picker forwardedRef={ref} {...props} /> });

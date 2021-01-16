@@ -2,10 +2,6 @@
 .room {
     
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
@@ -13,6 +9,8 @@
 
     .picker & {
         position: static;
+        min-height: unset;
+        border-radius: 4px;
     }
 
     background: #ccc;
@@ -24,7 +22,6 @@
     grid-template-rows: min-content 2fr;
     grid-auto-rows: 1fr;
 
-    border-radius: 4px;
     overflow: hidden;
     
     grid-template-areas: "controls" "status";

@@ -1,11 +1,12 @@
 import Icons from './svgs';
+import {forwardRef} from 'react';
 import './Room.scss';
 
 
 function StatusText(props) {
     return (
-      <svg viewBox="0 0 700 476" preserveAspectRatio="xMidYMid meet">
-      <text x="350" y="238" fill="white" fontFamily="Barlow-SemiBold, Barlow" fontSize="180" fontWeight="600" textAnchor="middle">
+      <svg viewBox="0 0 850 476" preserveAspectRatio="xMidYMid meet">
+      <text x="425" y="238" fill="white" fontFamily="Barlow-SemiBold, Barlow" fontSize="180" fontWeight="600" textAnchor="middle">
           <tspan dy=".35em" id="statusLabel">{props.children}</tspan>
       </text>
   </svg>
@@ -26,7 +27,7 @@ function MeetingAspects(props) {
     else return ("");
 }
 
-export default function Room(props) {
+const Room = forwardRef((props,ref)=>{
     const {status, active, open, name, onBack, onEdit, onClick, onDoubleClick, style} = props;
 
     let displayStatus = "offline";
@@ -50,11 +51,12 @@ export default function Room(props) {
     
     return (
         <div 
+            ref={ref}
             className={classList.join(" ")} 
             onClick={onClick}
             onDoubleClick={(e)=>{
-                e.preventDefault(); 
-                if(typeof onDoubleClick==="function")  onDoubleClick(e);
+                e.preventDefault();
+                if(typeof onDoubleClick==="function")  onDoubleClick(dispatchEvent);
             }}
             style={style}
         >
@@ -67,7 +69,10 @@ export default function Room(props) {
             {aspects}
         </div>
     );
-}
+});
+
+
+export default Room;
 
 Room.defaultProps = {
     name: '\u00a0',
