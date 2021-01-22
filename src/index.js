@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import MonitorPanel from './MonitorPanel';
+import RoomMonitor from './RoomMonitor';
 
 ReactDOM.render(
   <React.StrictMode>
-    <MonitorPanel />
+    <RoomMonitor />
   </React.StrictMode>,
   document.getElementById('root')
 );

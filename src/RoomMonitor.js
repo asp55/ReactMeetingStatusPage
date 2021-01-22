@@ -4,16 +4,17 @@ import { config } from './config';
 import Picker from './Picker.js'
 import Room from './Room.js'
 
-import './MonitorPanel.scss';
+import './RoomMonitor.scss';
 import PersistentWebSocket from "./PersistentWebSocket";
     
 const ws = new PersistentWebSocket(config.socket_url, [], false);
 
 
-function MonitorPanel() {
+function RoomMonitor() {
 
   const [connectionStatus, setConnectionStatus] = useState("initializing");
 
+  //reducer to handle receiving messages from the websocket & updating the rooms accordingly
   const [rooms, receiveMessage] = useReducer((state, message)=>{
     switch(message.action) {
       case "initialize":
@@ -27,8 +28,8 @@ function MonitorPanel() {
     }
   },{keys:[], info:{}});
 
-
-  
+  //Reducer to handle opening/closing rooms
+  //Should really only ever have one open room at a time, but by using a reducer we prevent weird behaviors from coinciding transitions
   const [openRooms, manageRooms] = useReducer((state, command)=>{
     switch(command.action) {
       case "open":
@@ -53,85 +54,84 @@ function MonitorPanel() {
   },{keys:[], startingPosition:{}});
 
   
-  const _onopen = (event) => {
-    console.log("WebSocket is open now.");
-    setConnectionStatus("initializing");
-    ws.send(JSON.stringify({action:"identify",type:"monitor"}));
-  } 
-
-  const _onerror = (error) => {
-    console.log(`WebSocket error: ${error}`)
-  }
-
-  const _onclose = (event) => {
-      console.log("WebSocket is closed now. Reconnecting in 0.5s");
-      setConnectionStatus("offline");
-      //offlinePanel();
-  }
-
-  const _onmessage = (e) => {
-      var message = JSON.parse(e.data);
-      console.log("Message received: ",{parsed: message, raw: e.data});
-      setConnectionStatus("online");
-      receiveMessage(message);
-  }
-  
+  //Use Use effect to connect listereners and start websocket connection on mount
+  //And remove them / stop the websocket connection on cleanup
   useEffect(()=>{
-    ws.addEventListener("open", _onopen);
-    ws.addEventListener("error", _onerror);
-    ws.addEventListener("message", _onmessage);
-    ws.addEventListener("close", _onclose);
+    const wsListeners = {
+      onopen: (event) => {
+        console.log("WebSocket is open now.");
+        setConnectionStatus("initializing");
+        ws.send(JSON.stringify({action:"identify",type:"monitor"}));
+      },
+      onerror: (error) => {
+        console.log(`WebSocket error: ${error}`)
+      },  
+      onclose: (event) => {
+          console.log("WebSocket is closed now. Reconnecting in 0.5s");
+          setConnectionStatus("offline");
+      },  
+      onmessage: (e) => {
+          var message = JSON.parse(e.data);
+          console.log("Message received: ",{parsed: message, raw: e.data});
+          setConnectionStatus("online");
+          receiveMessage(message);
+      }
+    }
+    
+    ws.addEventListener("open", wsListeners.onopen);
+    ws.addEventListener("error", wsListeners.onerror);
+    ws.addEventListener("message", wsListeners.onmessage);
+    ws.addEventListener("close", wsListeners.onclose);
     ws.start();
 
     return ()=> {
-      ws.removeEventListener("open", _onopen);
-      ws.removeEventListener("error", _onerror);
-      ws.removeEventListener("message", _onmessage);
-      ws.removeEventListener("close", _onclose);
+      ws.removeEventListener("open", wsListeners.onopen);
+      ws.removeEventListener("error", wsListeners.onerror);
+      ws.removeEventListener("message", wsListeners.onmessage);
+      ws.removeEventListener("close", wsListeners.onclose);
       ws.stop();
     }
   }, []);
 
   const roomRef = useRef(null);
   const nodeRef = useRef(null);
-  const startingPosition = (ref) => {
-    const rect = ref.current.getBoundingClientRect(), parentRect = ref.current.parentElement.getBoundingClientRect();
 
-    return {
-      bottom: parentRect.bottom - rect.bottom,
-      height: rect.height,
-      left: rect.left - parentRect.left,
-      right: parentRect.right - rect.right,
-      top: rect.top - parentRect.top,
-      width: rect.width
-    }
-  }
+
 
   if(connectionStatus==="initializing") return (
-    <div className="MonitorPanel">
+    <div className="RoomMonitor">
       Initializing...
     </div>
   );
   else if(connectionStatus==="offline") return (
-    <div className="MonitorPanel">
+    <div className="RoomMonitor">
       Server Offline
     </div>);
   else {
     return (
       <React.Fragment>
-        
         <Picker 
           ref={roomRef}
           rooms={rooms}
-          onOpenRoom={(key, e)=>{
+          onOpenRoom={(key)=>{
+            const rect = roomRef.current.getBoundingClientRect(), parentRect = roomRef.current.parentElement.getBoundingClientRect();
+        
+            const startingPosition = {
+              bottom: parentRect.bottom - rect.bottom,
+              height: rect.height,
+              left: rect.left - parentRect.left,
+              right: parentRect.right - rect.right,
+              top: rect.top - parentRect.top,
+              width: rect.width
+            }
 
             manageRooms({
               action:"open", 
               key:key, 
-              startingPosition:startingPosition(roomRef)
+              startingPosition:startingPosition
             })
-          }
-        }/>
+          }}
+        />
         <TransitionGroup>
           {openRooms.keys.map((key)=>{
             const startingBox = openRooms.startingPosition[key];
@@ -146,7 +146,6 @@ function MonitorPanel() {
                 style={{
                   "--startTop": startingBox.top+'px',
                   "--startRight": startingBox.right+'px',
-                  "--startBottom": startingBox.bottom+'px',
                   "--startLeft": startingBox.left+'px',
                   "--startHeight": startingBox.height+'px'
                 }}
@@ -165,4 +164,4 @@ function MonitorPanel() {
   }
 }
 
-export default MonitorPanel;
+export default RoomMonitor;
