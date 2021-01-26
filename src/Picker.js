@@ -1,5 +1,6 @@
 import React from 'react';
-import Room from './Room.js'
+import Room from './Room.js';
+import Icons from './svgs';
 
 import './Picker.scss';
 function rem2px(rem) {  
@@ -9,7 +10,7 @@ function px2rem(px) {
   return px/parseFloat(getComputedStyle(document.documentElement).fontSize);
 }
 function updatePickerHeight() {
-  let picker = document.querySelector(".picker");
+  let picker = document.querySelector(".picker .rooms");
   if(picker) {
     let pickerStyle = picker.style;
   
@@ -38,10 +39,6 @@ function updatePickerHeight() {
   }
 }
 
-function AddTile(props) {
-  return (<button {...props}></button>)
-}
-
 class Picker extends React.Component {
   constructor(props) {
     super(props);
@@ -65,30 +62,34 @@ class Picker extends React.Component {
   }
 
   render() {
-    const {rooms, forwardedRef, onOpenRoom, onEditRoom} = this.props;
+    const {rooms, forwardedRef, onOpenRoom, onEdit} = this.props;
 
     return (
       <div className="picker" onClick={()=>{this.setState({selectedRoom: ""})}}>
-      {
-        rooms.keys.map(id=>{
-          const roomOnline = (typeof rooms.info[id].status === "object");
-          return (
-            <Room 
-              ref={this.state.selectedRoom === id ? forwardedRef : null}
-              key={`chip-${id}`}
-              name={rooms.info[id].name}
-              status={rooms.info[id].status}
-              active={this.state.selectedRoom === id}
-              onClick={(e)=>{
-                e.stopPropagation();
-                this.setState({selectedRoom: id})
-              }}
-              onDoubleClick={(e)=>{if(roomOnline && typeof onOpenRoom === "function") onOpenRoom(id)}}
-              onEdit={()=>{if(typeof onEditRoom === "function") onEditRoom(id)}}
-            />
-          )
-        })
-      }
+        <div className="pickerControls">
+          <span className="button edit" onClick={(e)=>{ e.stopPropagation(); if(typeof onEdit === "function") onEdit(e);}}><Icons.Cog/></span>
+        </div>
+        <div className="rooms">
+          {
+            rooms.keys.map(id=>{
+              const roomOnline = (typeof rooms.info[id].status === "object");
+              return (
+                <Room 
+                  ref={this.state.selectedRoom === id ? forwardedRef : null}
+                  key={`chip-${id}`}
+                  name={rooms.info[id].name}
+                  status={rooms.info[id].status}
+                  active={this.state.selectedRoom === id}
+                  onClick={(e)=>{
+                    e.stopPropagation();
+                    this.setState({selectedRoom: id})
+                  }}
+                  onDoubleClick={(e)=>{if(roomOnline && typeof onOpenRoom === "function") onOpenRoom(id)}}
+                />
+              )
+            })
+          }
+        </div>
       </div>
     )
   }

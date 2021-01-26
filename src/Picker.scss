@@ -1,9 +1,31 @@
 .picker {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-    gap: 1rem;
-    padding: 1rem;
     background: black;
     box-sizing: border-box;
     min-height: 100vh;
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 2rem;
+    grid-template-areas: "tiles controls";
+
+    .pickerControls {
+        fill: #fff;
+        grid-area: controls;
+        padding: 1rem 0.5rem;
+        background: rgba(255,255,255,0.2);
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-start;
+        .button {
+            flex-basis: 1rem;
+        }
+    }
+
+    .rooms {
+        grid-area: tiles;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+        overflow-y: auto;
+    }
 }

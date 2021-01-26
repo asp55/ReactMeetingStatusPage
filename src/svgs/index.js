@@ -6,6 +6,8 @@ import {ReactComponent as VidOff} from './vidOff.svg';
 import {ReactComponent as VidOn} from './vidOn.svg';
 import {ReactComponent as Cog} from './cog.svg';
 import {ReactComponent as Tiles} from './tiles.svg';
+import {ReactComponent as Close} from './close.svg';
+import {ReactComponent as SubtractCircle} from './subtract-circle.svg';
 
 const Icons = {
     MicOn: MicActive,
@@ -15,7 +17,9 @@ const Icons = {
     VidOn: VidOn,
     VidOff: VidOff,
     Cog: Cog,
-    Tiles: Tiles
+    Tiles: Tiles,
+    Close: Close,
+    SubtractCircle: SubtractCircle
 };
 
 export default Icons;

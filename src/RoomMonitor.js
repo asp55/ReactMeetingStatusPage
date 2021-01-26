@@ -3,6 +3,7 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { config } from './config';
 import Picker from './Picker.js'
 import Room from './Room.js'
+import RoomEditor from './RoomEditor.js'
 
 import './RoomMonitor.scss';
 import PersistentWebSocket from "./PersistentWebSocket";
@@ -10,7 +11,9 @@ import PersistentWebSocket from "./PersistentWebSocket";
 const ws = new PersistentWebSocket(config.socket_url, [], false);
 
 
-function RoomMonitor() {
+function RoomMonitor(props) {
+
+  const {debug} = props;
 
   const [connectionStatus, setConnectionStatus] = useState("initializing");
 
@@ -23,7 +26,7 @@ function RoomMonitor() {
         state.info[message.room] = message.roomInfo;
         return {...state};
       default:
-        console.log(`Unsupported Action: ${message.action}`);
+        if(debug) console.log(`Unsupported Action: ${message.action}`, message);
         return state;
     }
   },{keys:[], info:{}});
@@ -47,7 +50,7 @@ function RoomMonitor() {
         }
         return {...state};
       default:
-        console.log(`Unsupported Action: ${command.action}`);
+        if(debug) console.log(`Unsupported Action: ${command.action}`);
         return state;
     }
 
@@ -59,20 +62,20 @@ function RoomMonitor() {
   useEffect(()=>{
     const wsListeners = {
       onopen: (event) => {
-        console.log("WebSocket is open now.");
+        if(debug) console.log("WebSocket is open now.");
         setConnectionStatus("initializing");
         ws.send(JSON.stringify({action:"identify",type:"monitor"}));
       },
       onerror: (error) => {
-        console.log(`WebSocket error: ${error}`)
+        if(debug) console.log(`WebSocket error: ${error}`)
       },  
       onclose: (event) => {
-          console.log("WebSocket is closed now. Reconnecting in 0.5s");
+          if(debug) console.log("WebSocket is closed now. Reconnecting in 0.5s");
           setConnectionStatus("offline");
       },  
       onmessage: (e) => {
           var message = JSON.parse(e.data);
-          console.log("Message received: ",{parsed: message, raw: e.data});
+          if(debug) console.log("Message received: ",{parsed: message, raw: e.data});
           setConnectionStatus("online");
           receiveMessage(message);
       }
@@ -91,7 +94,9 @@ function RoomMonitor() {
       ws.removeEventListener("close", wsListeners.onclose);
       ws.stop();
     }
-  }, []);
+  }, [debug]);
+
+  const [editRooms, showEditRooms] = useState(false);
 
   const roomRef = useRef(null);
   const nodeRef = useRef(null);
@@ -114,15 +119,13 @@ function RoomMonitor() {
           ref={roomRef}
           rooms={rooms}
           onOpenRoom={(key)=>{
-            const rect = roomRef.current.getBoundingClientRect(), parentRect = roomRef.current.parentElement.getBoundingClientRect();
+            const rect = roomRef.current.getBoundingClientRect();
         
             const startingPosition = {
-              bottom: parentRect.bottom - rect.bottom,
-              height: rect.height,
-              left: rect.left - parentRect.left,
-              right: parentRect.right - rect.right,
-              top: rect.top - parentRect.top,
-              width: rect.width
+              x: rect.x,
+              y: rect.y,
+              width: rect.width,
+              height: rect.height
             }
 
             manageRooms({
@@ -131,22 +134,22 @@ function RoomMonitor() {
               startingPosition:startingPosition
             })
           }}
+
+          onEdit={()=>{showEditRooms(true)}}
         />
         <TransitionGroup>
           {openRooms.keys.map((key)=>{
             const startingBox = openRooms.startingPosition[key];
             return (
-            <CSSTransition key={`transition-${key}`} timeout={200} classNames="room" nodeRef={nodeRef}>
+            <CSSTransition key={`transition-${key}`} timeout={300} classNames="room" nodeRef={nodeRef}>
               <Room 
                 ref={nodeRef}
-                key={`chip-${key}`}
                 name={rooms.info[key].name}
                 status={rooms.info[key].status}
-                onEdit={()=>console.log(`editRoom(${key})`)}
                 style={{
-                  "--startTop": startingBox.top+'px',
-                  "--startRight": startingBox.right+'px',
-                  "--startLeft": startingBox.left+'px',
+                  "--startX": startingBox.x+'px',
+                  "--startY": startingBox.y+'px',
+                  "--startWidth": startingBox.width+'px',
                   "--startHeight": startingBox.height+'px'
                 }}
                 open={true}
@@ -158,6 +161,8 @@ function RoomMonitor() {
           )}
 
         </TransitionGroup>
+        { editRooms ? <RoomEditor socket={ws} rooms={rooms} onExit={()=>{showEditRooms(false)}}/> : ""}
+
       </React.Fragment>
       
     )

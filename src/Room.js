@@ -28,7 +28,7 @@ function MeetingAspects(props) {
 }
 
 const Room = forwardRef((props,ref)=>{
-    const {status, active, open, name, onBack, onEdit, onClick, onDoubleClick, style} = props;
+    const {status, active, open, name, onBack, onClick, onDoubleClick, style} = props;
 
     let displayStatus = "offline";
     let aspects = "";
@@ -63,7 +63,6 @@ const Room = forwardRef((props,ref)=>{
             <div className="controls">
                 {open ? <span className="button back" onClick={(e)=>{ e.stopPropagation(); if(typeof onBack==="function") onBack(e);}}><Icons.Tiles/></span> : ""}
                 {name}
-                <span className="button edit" onClick={(e)=>{ e.stopPropagation(); if(typeof onEdit==="function") onEdit(e);}}><Icons.Cog/></span>
             </div>
             <div className="status"><StatusText>{displayStatus}</StatusText></div>
             {aspects}

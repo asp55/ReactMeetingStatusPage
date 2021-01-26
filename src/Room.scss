@@ -33,34 +33,28 @@
         background:#fff;
         grid-area: controls;
         display: grid;
-        grid-template-columns: 1fr 1rem;
+        grid-template-columns: 1fr;
         grid-template-rows: 1rem;
         padding: .5rem;
         line-height: 1rem;
         border-bottom: 1px solid rgba(0,0,0,0.25);
-        
-        .button {
-            display: none;
-        }
 
     }
 
     &.active {
         box-shadow: 0 0 0 0.125rem yellow;
-        .controls {
-            .button {
-                display: block;
-            }
-        }
     }
 
     &.open {
         .controls {
-            grid-template-columns: 1.5rem 1fr 1rem;
+            grid-template-columns: max-content 1fr;
             .button {
+                overflow: hidden;
                 display: block;
-                &.back {
-                    margin-right: .5rem;
+                width: 1rem;
+                margin-right: 0.5rem;
+                svg {
+                    width: 1rem;
                 }
             }
         }
