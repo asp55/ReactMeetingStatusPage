@@ -62,12 +62,24 @@ class Picker extends React.Component {
   }
 
   render() {
-    const {rooms, forwardedRef, onOpenRoom, onEdit} = this.props;
+    const {allowFocus, rooms, forwardedRef, onOpenRoom, onEdit} = this.props;
 
     return (
       <div className="picker" onClick={()=>{this.setState({selectedRoom: ""})}}>
         <div className="pickerControls">
-          <span className="button edit" onClick={(e)=>{ e.stopPropagation(); if(typeof onEdit === "function") onEdit(e);}}><Icons.Cog/></span>
+          <button
+            className="button edit"
+            ref={this.state.selectedRoom === "menu" ? forwardedRef : null}
+            tabIndex={allowFocus ? 0 : -1}
+            onClick={(e)=>{
+              e.stopPropagation();
+              this.setState({selectedRoom: "menu"});              
+              if(typeof onEdit === "function") onEdit(e);
+            }}
+            onFocus={(e)=>{
+              this.setState({selectedRoom: "menu"});
+            }}
+          ><Icons.Cog/></button>
         </div>
         <div className="rooms">
           {
@@ -75,6 +87,7 @@ class Picker extends React.Component {
               const roomOnline = (typeof rooms.info[id].status === "object");
               return (
                 <Room 
+                  tabIndex={allowFocus ? 0 : -1}
                   ref={this.state.selectedRoom === id ? forwardedRef : null}
                   key={`chip-${id}`}
                   name={rooms.info[id].name}
@@ -82,7 +95,10 @@ class Picker extends React.Component {
                   active={this.state.selectedRoom === id}
                   onClick={(e)=>{
                     e.stopPropagation();
-                    this.setState({selectedRoom: id})
+                    this.setState({selectedRoom: id});
+                  }}
+                  onFocus={(e)=>{
+                    this.setState({selectedRoom: id});
                   }}
                   onDoubleClick={(e)=>{if(roomOnline && typeof onOpenRoom === "function") onOpenRoom(id)}}
                 />

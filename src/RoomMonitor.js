@@ -15,6 +15,11 @@ function RoomMonitor(props) {
 
   const {debug} = props;
 
+
+  const nodeRef = useRef(null);
+  const roomRef = useRef(null);
+
+
   const [connectionStatus, setConnectionStatus] = useState("initializing");
 
   //reducer to handle receiving messages from the websocket & updating the rooms accordingly
@@ -97,11 +102,36 @@ function RoomMonitor(props) {
   }, [debug]);
 
   const [editRooms, showEditRooms] = useState(false);
+  
+  useEffect(()=>{
+    const escapeListener = (e)=>{
+      if(e.code === "Escape") { 
+        if(openRooms.keys.length) {
+          openRooms.keys.forEach(key=>manageRooms({action:"close", key:key}));
+          roomRef.current.focus();
+        }
+        else if(editRooms) {
+          showEditRooms(false);
+          roomRef.current.focus();
+        }
+      }
+    }
+    window.addEventListener("keydown",escapeListener);
 
-  const roomRef = useRef(null);
-  const nodeRef = useRef(null);
+    return ()=>{
+      window.removeEventListener("keydown",escapeListener);
+    }
+  }, [openRooms, editRooms])
+/*
+  useLayoutEffect(()=>{
+    console.log("Layout Effect 107");
+    if(openRooms.keys.length) {
 
+    }
+    else if(roomRef.current !== null) roomRef.current.focus();
 
+  }, [roomRef, nodeRef, openRooms])
+*/
 
   if(connectionStatus==="initializing") return (
     <div className="RoomMonitor">
@@ -118,6 +148,7 @@ function RoomMonitor(props) {
         <Picker 
           ref={roomRef}
           rooms={rooms}
+          allowFocus={!editRooms && openRooms.keys.length===0}
           onOpenRoom={(key)=>{
             const rect = roomRef.current.getBoundingClientRect();
         

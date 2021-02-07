@@ -1,5 +1,5 @@
 import Icons from './svgs';
-import {useState, useRef, useLayoutEffect, useEffect} from 'react';
+import {useState, useRef, useLayoutEffect, useEffect, useCallback} from 'react';
 
 import './RoomEditor.scss';
 
@@ -10,8 +10,10 @@ export default function RoomEditor(props) {
   const [addingRow, setAddingRow] = useState(false);
   const [processingAddingRow, setProcessingAddingRow] = useState(false);
   const [validationError, setValidationError] = useState(false);
+
+  //Focus into adding row after adding row is constructed
   useLayoutEffect(()=>{
-    if(addingRow) ref.current.focus();
+    ref.current.focus();
   }, [addingRow]);
 
 
@@ -35,9 +37,14 @@ export default function RoomEditor(props) {
     }
   }, [socket]);
 
+
   const processNewRoom = (name) => {
-    setProcessingAddingRow(true);
-    socket.send(JSON.stringify({action:"add room",name:name}));
+    name = name.trim();
+    if(name==="") dismissAddingRow();
+    else {
+      setProcessingAddingRow(true);
+      socket.send(JSON.stringify({action:"add room",name:name}));
+    }
   };
 
   const dismissAddingRow = () => {
@@ -46,10 +53,24 @@ export default function RoomEditor(props) {
     setValidationError(false);
   }
 
-  return <div className="overlay" onClick={()=>{if(typeof onExit === "function") onExit();}}>
+  const doExit = useCallback(()=>{if(typeof onExit === "function") onExit();}, [onExit]);
+
+  /*
+  useEffect(()=>{
+    const listenForEscale = (e)=>{
+      if(e.code==="Escape") doExit();
+    };
+    window.addEventListener("keydown", listenForEscale);
+    return ()=>{
+      window.removeEventListener("keydown", listenForEscale);
+    }
+  },[doExit])
+*/
+
+  return <div className="overlay" onClick={doExit}>
     <dialog className="modal" onClick={e=>e.stopPropagation()}>
       <header>
-        <span className="button close" onClick={(e)=>{ e.stopPropagation(); if(typeof onExit === "function") onExit();}}><Icons.Close/></span>
+        <button className="button close" tabIndex="0" onClick={(e)=>{ e.stopPropagation(); doExit();}}><Icons.Close/></button>
         <hgroup><h1>Edit Rooms</h1></hgroup>
       </header>
       <main>
@@ -62,7 +83,6 @@ export default function RoomEditor(props) {
           </colgroup>
           <thead>
             <tr>
-              <td></td>
               <th className="textcell" scope="col">Name</th>
               <th className="textcell" scope="col">Key</th>
               <td></td>
@@ -73,11 +93,10 @@ export default function RoomEditor(props) {
             rooms.keys.map(id=>{
               return (
                 <tr key={`row${id}`}>
-                  <td className="textcell" ><input type="checkbox" id={id} name="rooms"/></td>
                   <th className="textcell" scope="row">{rooms.info[id].name}</th>
                   <td className="textcell">{id}</td>
-                  <td className="textcell"><span className="button removeRoom" onClick={()=>{
-    socket.send(JSON.stringify({action:"remove room", key:id}))}}><Icons.SubtractCircle /></span></td>
+                  <td className="textcell"><button className="button removeRoom" onClick={()=>{
+    socket.send(JSON.stringify({action:"remove room", key:id}))}} tabIndex="0"><Icons.SubtractCircle /></button></td>
                 </tr>
               )
             })
@@ -85,27 +104,28 @@ export default function RoomEditor(props) {
           {
             addingRow ? 
             <tr className="nohover">
-              <td className="textcell" ></td>
               <td className="inputcell">
                 <input 
                   disabled={processingAddingRow}
                   ref={ref} 
                   onBlur={
                     (e)=>{
-                      if(e.target.value==="") dismissAddingRow();
+                      if(e.target.value.trim==="") dismissAddingRow();
                       else {
                         processNewRoom(e.target.value);
                       }
                     }
                   }
-                  onKeyPress={
+                  onKeyDown={
                     (e)=>{
-                      if(e.key==="Enter") {
+                      e.stopPropagation();
+                      if(e.code==="Enter") {
                         if(e.target.value==="") dismissAddingRow();
                         else {
                           processNewRoom(e.target.value);
                         }
                       }
+                      else if(e.code==="Escape") dismissAddingRow();
                     }
                   }
                   type="text"
@@ -117,8 +137,7 @@ export default function RoomEditor(props) {
               <td className="textcell"></td>
             </tr>
             :
-            <tr className="nohover addrow"  tabIndex="0" onFocus={()=>{setAddingRow(true)}} onClick={()=>{setAddingRow(true)}}>
-              <td className="textcell"></td>
+            <tr className="nohover addrow"  tabIndex="0" ref={ref} onKeyPress={(e=>{if(["Space", "Enter"].includes(e.code)) setAddingRow(true); })} onClick={()=>{setAddingRow(true)}}>
               <td className="textcell" colSpan="2">Add Room</td>
               <td className="textcell"></td>
             </tr>

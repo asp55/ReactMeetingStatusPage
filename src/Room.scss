@@ -1,4 +1,6 @@
-
+div {
+    box-sizing: border-box;
+}
 .room {
     
     position: absolute;
@@ -19,8 +21,11 @@
     }
 
     display: grid;
-    grid-template-rows: min-content 2fr;
-    grid-auto-rows: 1fr;
+    /*
+        minmax(0%, #fr) is a workaround to get safari to treat flex units as a absolute height for calculating children that are 100% of height
+    */
+    grid-template-rows: 2rem minmax(0%, 2fr);
+    grid-auto-rows: minmax(0%, 1fr); 
 
     overflow: hidden;
     
@@ -72,10 +77,10 @@
     .aspects {
         fill: #fff;
         display: grid;
+        place-items: center;
         grid-auto-flow: column;
         grid-auto-columns:1fr;
         padding: 1rem;
-        place-items: center;
         svg {
             max-width: 8rem;
             max-height: 8rem;

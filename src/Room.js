@@ -6,7 +6,7 @@ import './Room.scss';
 function StatusText(props) {
     return (
       <svg viewBox="0 0 850 476" preserveAspectRatio="xMidYMid meet">
-      <text x="425" y="238" fill="white" fontFamily="Barlow-SemiBold, Barlow" fontSize="180" fontWeight="600" textAnchor="middle">
+      <text x="425" y="238" fill="white" fontFamily="Poppins" fontSize="180" fontWeight="600" textAnchor="middle">
           <tspan dy=".35em" id="statusLabel">{props.children}</tspan>
       </text>
   </svg>
@@ -28,7 +28,7 @@ function MeetingAspects(props) {
 }
 
 const Room = forwardRef((props,ref)=>{
-    const {status, active, open, name, onBack, onClick, onDoubleClick, style} = props;
+    const {status, active, open, name, onBack, onClick, onFocus, onBlur, onDoubleClick, style, tabIndex} = props;
 
     let displayStatus = "offline";
     let aspects = "";
@@ -51,13 +51,17 @@ const Room = forwardRef((props,ref)=>{
     
     return (
         <div 
+            tabIndex={tabIndex}
             ref={ref}
             className={classList.join(" ")} 
             onClick={onClick}
+            onFocus={onFocus}
+            onBlur={onBlur}
             onDoubleClick={(e)=>{
                 e.preventDefault();
                 if(typeof onDoubleClick==="function")  onDoubleClick(dispatchEvent);
             }}
+            onKeyDown={(e)=>{if(e.code==="Enter" && typeof onDoubleClick==="function") onDoubleClick(dispatchEvent); }}
             style={style}
         >
             <div className="controls">
